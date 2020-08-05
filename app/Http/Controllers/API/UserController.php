@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\User;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -17,6 +18,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api');
+        // $this->authorize('isAdmin');
     }
     /**
      * Display a listing of the resource.
@@ -25,7 +27,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::latest()->paginate(10);
+        $this->authorize('isAdmin');
+
+        return User::latest()->paginate(20);
     }
 
     /**
@@ -51,6 +55,44 @@ class UserController extends Controller
             'photo' => $request['photo'],
             'password' => Hash::make($request['password']),
         ]);
+    }
+
+    public function profile()
+    {
+        // return auth('api')::user();
+        return Auth::user();
+    }
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        $this->validate($request,[
+            'name' => 'required|string|max:191',
+            'email' => 'required|string|email|max:191|unique:users,email,'.$user->id,
+            'password' => 'sometimes|required|string|min:6',
+        ]);
+
+        $currentPhoto = $user->photo;
+        if($request->photo != $currentPhoto) {
+
+            // $name = time().'.' . explode('/', explode(':', substr($request->photo, 0, strpos($request->photo, ':')))[1])[1];
+            // $name = $request->photo;
+            $extension = explode('/', mime_content_type($request->photo))[1];
+            $name = time().'.'.$extension;
+            \Image::make($request->photo)->save(public_path('img/profile/'). $name);
+
+            $request->merge(['photo' => $name]);
+
+            $userPhoto = public_path('img/profile/').$currentPhoto;
+            if(file_exists($userPhoto)) {
+                @unlink($userPhoto);
+            }
+        }
+
+        if(!empty($request->password)) {
+            $request->merge(['password' => Hash::make($request['password'])]);
+        }
+        $user->update($request->all());
+        return ["message" => "Success"];
     }
 
     /**
@@ -91,6 +133,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        $this->authorize('isAdmin');
         $user = User::findOrFail($id);
         $user->delete();
         return ['message' => 'User Deleted'];
