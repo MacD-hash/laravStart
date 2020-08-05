@@ -75,19 +75,24 @@ window.Fire = new Vue();
  */
 Vue.component(
     'passport-authorized-clients',
-    require('./components/passport/AuthorizedClients.vue').default
+    require('./components/passport/AuthorizedClients.vue')
 );
 
 Vue.component(
     'passport-clients',
-    require('./components/passport/Clients.vue').default
+    require('./components/passport/Clients.vue')
 );
-
 
 Vue.component(
     'passport-personal-access-tokens',
-    require('./components/passport/PersonalAccessTokens.vue').default
+    require('./components/passport/PersonalAccessTokens.vue')
 );
+// v42.2
+Vue.component(
+    'not-found',
+    require('./components/NotFound.vue')
+);
+
 Vue.component('example-component', require('./components/ExampleComponent.vue'));
 
 const app = new Vue({
