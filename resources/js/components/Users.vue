@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <div class="row justify-content-center mt-5">
+        <div class="row justify-content-center mt-5" v-if="$gate.isAdmin()"> <!-- v41.4 -->
            <div class="col-md-12">
             <div class="card">
               <div class="card-header">
@@ -143,7 +143,11 @@
         },
         methods: {
             loadUsers() {
-                axios.get("api/user").then(({data}) => (this.users = data.data));
+                // v41.5
+                if(this.$gate.isAdmin()){
+                    axios.get("api/user").then(({data}) => (this.users = data.data));
+
+                }
             },
             newModal() {
                 this.editmode = false;
